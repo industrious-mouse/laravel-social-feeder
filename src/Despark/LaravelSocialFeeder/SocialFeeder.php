@@ -4,20 +4,27 @@ use Illuminate\Support\Facades\Log;
 use Config;
 
 use Facebook;
+use Thujohn\Twitter\Twitter;
+use TwitterAPIExchange;
 
 class SocialFeeder
 {
     public static function fetchTwitterPosts()
     {
-        $connection = new \Abraham\TwitterOAuth\TwitterOAuth(
-            config('laravel-social-feeder::twitterCredentials.consumerKey'),
-            config('laravel-social-feeder::twitterCredentials.consumerSecret'),
-            config('laravel-social-feeder::twitterCredentials.accessToken'),
-            config('laravel-social-feeder::twitterCredentials.accessTokenSecret')
-        );
+        $url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
+
+        $client = new TwitterAPIExchange([
+            'oauth_access_token'        => config('laravel-social-feeder.twitter.accessToken'),
+            'oauth_access_token_secret' => config('laravel-social-feeder.twitter.accessTokenSecret'),
+            'consumer_key'              => config('laravel-social-feeder.twitter.consumerKey'),
+            'consumer_secret'           => config('laravel-social-feeder.twitter.consumerSecret')
+        ]);
+
         $params = array(
-            'screen_name' => config('laravel-social-feeder::twitterCredentials.screen_name'),
-            'count' => config('laravel-social-feeder::twitterCredentials.limit'),
+            'screen_name'       => config('laravel-social-feeder.twitter.screen_name'),
+            'count'             => config('laravel-social-feeder.twitter.limit'),
+            'exclude_replies'   => config('laravel-social-feeder.twitter.exclude_replies', true),
+            'include_rts'       => config('laravel-social-feeder.twitter.include_rts', true)
         );
 
         $lastTwitterPost = \SocialPost::type('twitter')
@@ -31,14 +38,17 @@ class SocialFeeder
         }
 
         try {
-            $tweets = $connection->get('statuses/user_timeline', $params);
-        } catch (Exception $e) {
-            $tweets = array();
+            $tweets = $client
+                ->setGetfield('?' . http_build_query($params))
+                ->buildOauth($url, 'GET')
+                ->performRequest();
+        } catch (\Exception $e) {
+            $tweets = json_encode([]);
         }
 
-        $outputs = array();
+        $data = [];
 
-        foreach ($tweets as $tweet) {
+        foreach (json_decode($tweets) as $tweet) {
             if (! is_object($tweet)) {
                 continue;
             }
@@ -54,19 +64,20 @@ class SocialFeeder
                 'published_at' => date('Y-m-d H:i:s', strtotime($tweet->created_at)),
             ];
 
-            array_push($outputs, $newPostData);
+            array_push($data, $newPostData);
         }
-        return $outputs;
+
+        return $data;
     }
 
     public static function fetchFacebookPosts()
     {
-        $pageId = config('laravel-social-feeder::facebookCredentials.pageName');
-        $limit = config('laravel-social-feeder::facebookCredentials.limit');
+        $pageId = config('laravel-social-feeder.facebook.pageName');
+        $limit = config('laravel-social-feeder.facebook.limit');
 
         // Get the name of the logged in user
-        $appId = config('laravel-social-feeder::facebookCredentials.appId');
-        $appSecret = config('laravel-social-feeder::facebookCredentials.appSecret');
+        $appId = config('laravel-social-feeder.facebook.appId');
+        $appSecret = config('laravel-social-feeder.facebook.appSecret');
 
         $url = 'https://graph.facebook.com/' . $pageId . '/feed?' . http_build_query([
             'fields' => implode(',', $scope),
@@ -91,7 +102,7 @@ class SocialFeeder
         $results = curl_exec($ch); // Getting jSON result string
         $results = json_decode($results);
         $results = $results->data;
-        $outputs = array();
+        $data = array();
 
         foreach ($results as $post) {
             $message = $post->message ?? null;
@@ -107,10 +118,10 @@ class SocialFeeder
                 'published_at' => date('Y-m-d H:i:s', strtotime($post->created_time)),
             );
 
-            array_push($outputs, $newPostData);
+            array_push($data, $newPostData);
         }
 
-        return $outputs;
+        return $data;
     }
 
     public static function fetchInstagramPosts()
@@ -118,10 +129,10 @@ class SocialFeeder
         $lastInstagramPost = \SocialPost::type('instagram')->latest('published_at')->get()->first();
         $lastInstagramPostTimestamp = $lastInstagramPost ? strtotime($lastInstagramPost->published_at) : 0;
 
-        //$clientId = config('laravel-social-feeder::instagramCredentials.clientId');
-        $userId = config('laravel-social-feeder::instagramCredentials.userId');
-        $accessToken = config('laravel-social-feeder::instagramCredentials.accessToken');
-        $limit = config('laravel-social-feeder::instagramCredentials.limit');
+        //$clientId = config('laravel-social-feeder.instagram.clientId');
+        $userId = config('laravel-social-feeder.instagram.userId');
+        $accessToken = config('laravel-social-feeder.instagram.accessToken');
+        $limit = config('laravel-social-feeder.instagram.limit');
 
         $url = 'https://api.instagram.com/v1/users/'.$userId.'/media/recent?access_token=' . $accessToken . "&count=" . $limit;
         ;
@@ -131,7 +142,7 @@ class SocialFeeder
 
         $postsData = $obj->data;
 
-        $outputs = array();
+        $data = array();
 
         foreach ($postsData as $post) {
             if (!is_null($post->caption)) {
@@ -151,10 +162,10 @@ class SocialFeeder
                     'published_at' => date('Y-m-d H:i:s', $post->caption->created_time),
                 );
 
-                array_push($outputs, $newPostData);
+                array_push($data, $newPostData);
             }
         }
 
-        return $outputs;
+        return $data;
     }
 }

@@ -1,24 +1,23 @@
 <?php
 
-return array(
-    'twitterCredentials' => array(
-        'consumerKey' => '{consumer_key}',
-        'consumerSecret' => '{consumer_secret}',
-        'accessToken' => '{access_token}',
-        'accessTokenSecret' => '{access_token_secret}',
+return [
+    'twitter' => [
+        'consumerKey' => '',
+        'consumerSecret' => '',
+        'accessToken' => '',
+        'accessTokenSecret' => '',
 
-        'host' => 'https://api.twitter.com/1.1/',
+        'exclude_replies' => true,
+        'include_rts' => true,
+    ],
 
-        'screen_name' => '{screen_name}',
-    ),
+    'facebook' => [
+        'accessToken' => '',
+        'pageName' => ''
+    ],
 
-    'facebookCredentials' => array(
-        'accessToken' => '{access_token}',
-        'pageName' => '{page_name}'
-    ),
-
-    'instagramCredentials' => array(
-        'userId' => '{userId}',
-        'clientId' => '{clientId}',
-    ),
-);
+    'instagram' => [
+        'userId' => '',
+        'clientId' => '',
+    ],
+];

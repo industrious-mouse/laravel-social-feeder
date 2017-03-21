@@ -13,7 +13,7 @@
         "php": ">=5.4.0",
         "illuminate/support": ">=5.1",
         "sammyk/laravel-facebook-sdk": "^3.4",
-        "thujohn/twitter": "^2.2"
+        "j7mbo/twitter-api-php": "^2.2"
     },
     "autoload": {
         "classmap": [
