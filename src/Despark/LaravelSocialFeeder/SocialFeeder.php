@@ -18,7 +18,7 @@ class SocialFeeder
      */
     public function __construct($config = [])
     {
-        $this->config = array_merge(config('laravel-social-feeder'), $config);
+        $this->config = array_merge_recursive(config('laravel-social-feeder'), $config);
     }
 
     /**
@@ -215,6 +215,19 @@ class SocialFeeder
         }
 
         return $data;
+    }
+
+    /**
+     * @param array $config
+     */
+    public function setConfig($config = [])
+    {
+        $config = (array) $config;
+
+        foreach($config as $key => $value)
+        {
+            $this->config[$key] = array_merge($this->config[$key], $value);
+        }
     }
 
     /**
