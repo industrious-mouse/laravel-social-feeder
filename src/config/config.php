@@ -7,17 +7,19 @@ return [
         'accessToken' => '',
         'accessTokenSecret' => '',
 
+        'limit' => 10,
         'exclude_replies' => true,
         'include_rts' => true,
     ],
 
     'facebook' => [
         'accessToken' => '',
-        'pageName' => ''
+        'pageName' => '',
+        'limit' => 10,
     ],
 
     'instagram' => [
-        'userId' => '',
-        'clientId' => '',
+        'accessToken' => '',
+        'limit' => 10,
     ],
 ];

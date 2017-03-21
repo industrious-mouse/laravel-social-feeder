@@ -1,14 +1,16 @@
 <?php namespace Despark\LaravelSocialFeeder;
 
-use Illuminate\Support\Facades\Log;
-use Config;
-
-use Facebook;
-use Thujohn\Twitter\Twitter;
 use TwitterAPIExchange;
 
+/**
+ * Class SocialFeeder
+ * @package Despark\LaravelSocialFeeder
+ */
 class SocialFeeder
 {
+    /**
+     * @return array
+     */
     public static function fetchTwitterPosts()
     {
         $url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
@@ -70,6 +72,9 @@ class SocialFeeder
         return $data;
     }
 
+    /**
+     * @return array
+     */
     public static function fetchFacebookPosts()
     {
         $pageId = config('laravel-social-feeder.facebook.pageName');
@@ -78,6 +83,15 @@ class SocialFeeder
         // Get the name of the logged in user
         $appId = config('laravel-social-feeder.facebook.appId');
         $appSecret = config('laravel-social-feeder.facebook.appSecret');
+
+        $scope = [
+            'full_picture',
+            'from{name,picture}',
+            'message',
+            'created_time',
+            'id',
+            'permalink_url'
+        ];
 
         $url = 'https://graph.facebook.com/' . $pageId . '/feed?' . http_build_query([
             'fields' => implode(',', $scope),
@@ -102,13 +116,13 @@ class SocialFeeder
         $results = curl_exec($ch); // Getting jSON result string
         $results = json_decode($results);
         $results = $results->data;
-        $data = array();
+        $data = [];
 
         foreach ($results as $post) {
             $message = $post->message ?? null;
             $imageUrl = $post->full_picture ?? null;
 
-            $newPostData = array(
+            $newPostData = [
                 'type' => 'facebook',
                 'social_id' => $post->id,
                 'url' => $post->permalink_url,
@@ -116,7 +130,7 @@ class SocialFeeder
                 'image_url' => $imageUrl,
                 'show_on_page' => 1,
                 'published_at' => date('Y-m-d H:i:s', strtotime($post->created_time)),
-            );
+            ];
 
             array_push($data, $newPostData);
         }
@@ -124,25 +138,28 @@ class SocialFeeder
         return $data;
     }
 
+    /**
+     * @return array
+     */
     public static function fetchInstagramPosts()
     {
         $lastInstagramPost = \SocialPost::type('instagram')->latest('published_at')->get()->first();
-        $lastInstagramPostTimestamp = $lastInstagramPost ? strtotime($lastInstagramPost->published_at) : 0;
 
-        //$clientId = config('laravel-social-feeder.instagram.clientId');
-        $userId = config('laravel-social-feeder.instagram.userId');
-        $accessToken = config('laravel-social-feeder.instagram.accessToken');
-        $limit = config('laravel-social-feeder.instagram.limit');
+        $lastInstagramPostTimestamp = $lastInstagramPost
+            ? strtotime($lastInstagramPost->published_at)
+            : 0;
 
-        $url = 'https://api.instagram.com/v1/users/'.$userId.'/media/recent?access_token=' . $accessToken . "&count=" . $limit;
-        ;
+        $url = 'https://api.instagram.com/v1/users/self/media/recent/?' . http_build_query([
+            'access_token' => config('laravel-social-feeder.instagram.accessToken'),
+            'count' => config('laravel-social-feeder.instagram.limit')
+        ]);
+
         $json = file_get_contents($url);
 
         $obj = json_decode($json);
-
         $postsData = $obj->data;
 
-        $data = array();
+        $data = [];
 
         foreach ($postsData as $post) {
             if (!is_null($post->caption)) {
@@ -150,7 +167,7 @@ class SocialFeeder
                     continue;
                 }
 
-                $newPostData = array(
+                $newPostData = [
                     'type' => 'instagram',
                     'social_id' => $post->id,
                     'url' => $post->link,
@@ -160,7 +177,7 @@ class SocialFeeder
                     'author_name' => $post->user->username,
                     'author_image_url' => $post->user->profile_picture,
                     'published_at' => date('Y-m-d H:i:s', $post->caption->created_time),
-                );
+                ];
 
                 array_push($data, $newPostData);
             }
