@@ -18,12 +18,7 @@ class SocialFeeder
      */
     public function __construct($config = [])
     {
-        $this->config = $config;
-
-        if(!$this->config)
-        {
-            $this->config = config('laravel-social-feeder');
-        }
+        $this->config = array_merge(config('laravel-social-feeder'), $config);
     }
 
     /**
@@ -31,14 +26,17 @@ class SocialFeeder
      */
     public function fetchTwitterPosts()
     {
-        $url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
+        $access_token = $this->getConfigValue('twitter.accessToken');
+        $access_token_secret = $this->getConfigValue('twitter.accessTokenSecret');
+        $consumer_secret = $this->getConfigValue('twitter.consumerSecret');
+        $consumer_key = $this->getConfigValue('twitter.consumerKey');
 
-        $client = new TwitterAPIExchange([
-            'oauth_access_token'        => $this->getConfigValue('twitter.accessToken'),
-            'oauth_access_token_secret' => $this->getConfigValue('twitter.accessTokenSecret'),
-            'consumer_key'              => $this->getConfigValue('twitter.consumerKey'),
-            'consumer_secret'           => $this->getConfigValue('twitter.consumerSecret')
-        ]);
+        if(!$access_token || !$access_token_secret || !$consumer_secret || !$consumer_key)
+        {
+            return [];
+        }
+
+        $url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
 
         $params = array(
             'screen_name'       => $this->getConfigValue('twitter.screen_name'),
@@ -58,6 +56,13 @@ class SocialFeeder
         }
 
         try {
+            $client = new TwitterAPIExchange([
+                'oauth_access_token'        => $access_token,
+                'oauth_access_token_secret' => $access_token_secret,
+                'consumer_key'              => $consumer_key,
+                'consumer_secret'           => $consumer_secret
+            ]);
+
             $tweets = $client
                 ->setGetfield('?' . http_build_query($params))
                 ->buildOauth($url, 'GET')
@@ -161,16 +166,24 @@ class SocialFeeder
      */
     public function fetchInstagramPosts()
     {
+        $access_token = $this->getConfigValue('instagram.accessToken');
+
+        if(!$access_token)
+        {
+            return [];
+        }
+
         $lastInstagramPost = \SocialPost::type('instagram')->latest('published_at')->get()->first();
 
         $lastInstagramPostTimestamp = $lastInstagramPost
             ? strtotime($lastInstagramPost->published_at)
             : 0;
 
+
         $url = 'https://api.instagram.com/v1/users/self/media/recent/?' . http_build_query([
-                'access_token' => $this->getConfigValue('instagram.accessToken'),
-                'count' => $this->getConfigValue('instagram.limit')
-            ]);
+            'access_token' => $access_token,
+            'count' => $this->getConfigValue('instagram.limit')
+        ]);
 
         $json = file_get_contents($url);
 
