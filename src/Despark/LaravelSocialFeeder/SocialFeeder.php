@@ -9,24 +9,42 @@ use TwitterAPIExchange;
 class SocialFeeder
 {
     /**
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * @param array $config
+     */
+    public function __construct($config = [])
+    {
+        $this->config = $config;
+
+        if(!$this->config)
+        {
+            $this->config = config('laravel-social-feeder');
+        }
+    }
+
+    /**
      * @return array
      */
-    public static function fetchTwitterPosts()
+    public function fetchTwitterPosts()
     {
         $url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
 
         $client = new TwitterAPIExchange([
-            'oauth_access_token'        => config('laravel-social-feeder.twitter.accessToken'),
-            'oauth_access_token_secret' => config('laravel-social-feeder.twitter.accessTokenSecret'),
-            'consumer_key'              => config('laravel-social-feeder.twitter.consumerKey'),
-            'consumer_secret'           => config('laravel-social-feeder.twitter.consumerSecret')
+            'oauth_access_token'        => $this->getConfigValue('twitter.accessToken'),
+            'oauth_access_token_secret' => $this->getConfigValue('twitter.accessTokenSecret'),
+            'consumer_key'              => $this->getConfigValue('twitter.consumerKey'),
+            'consumer_secret'           => $this->getConfigValue('twitter.consumerSecret')
         ]);
 
         $params = array(
-            'screen_name'       => config('laravel-social-feeder.twitter.screen_name'),
-            'count'             => config('laravel-social-feeder.twitter.limit'),
-            'exclude_replies'   => config('laravel-social-feeder.twitter.exclude_replies', true),
-            'include_rts'       => config('laravel-social-feeder.twitter.include_rts', true)
+            'screen_name'       => $this->getConfigValue('twitter.screen_name'),
+            'count'             => $this->getConfigValue('twitter.limit'),
+            'exclude_replies'   => $this->getConfigValue('twitter.exclude_replies'),
+            'include_rts'       => $this->getConfigValue('twitter.include_rts')
         );
 
         $lastTwitterPost = \SocialPost::type('twitter')
@@ -75,14 +93,14 @@ class SocialFeeder
     /**
      * @return array
      */
-    public static function fetchFacebookPosts()
+    public function fetchFacebookPosts()
     {
-        $pageId = config('laravel-social-feeder.facebook.pageName');
-        $limit = config('laravel-social-feeder.facebook.limit');
+        $pageId = $this->getConfigValue('facebook.pageName');
+        $limit = $this->getConfigValue('facebook.limit');
 
         // Get the name of the logged in user
-        $appId = config('laravel-social-feeder.facebook.appId');
-        $appSecret = config('laravel-social-feeder.facebook.appSecret');
+        $appId = $this->getConfigValue('facebook.appId');
+        $appSecret = $this->getConfigValue('facebook.appSecret');
 
         $scope = [
             'full_picture',
@@ -94,10 +112,10 @@ class SocialFeeder
         ];
 
         $url = 'https://graph.facebook.com/' . $pageId . '/feed?' . http_build_query([
-            'fields' => implode(',', $scope),
-            'limit' => $limit,
-            'access_token' => $appId . '|' . $appSecret
-        ]);
+                'fields' => implode(',', $scope),
+                'limit' => $limit,
+                'access_token' => $appId . '|' . $appSecret
+            ]);
 
         // Initializing curl
         $ch = curl_init($url);
@@ -141,7 +159,7 @@ class SocialFeeder
     /**
      * @return array
      */
-    public static function fetchInstagramPosts()
+    public function fetchInstagramPosts()
     {
         $lastInstagramPost = \SocialPost::type('instagram')->latest('published_at')->get()->first();
 
@@ -150,9 +168,9 @@ class SocialFeeder
             : 0;
 
         $url = 'https://api.instagram.com/v1/users/self/media/recent/?' . http_build_query([
-            'access_token' => config('laravel-social-feeder.instagram.accessToken'),
-            'count' => config('laravel-social-feeder.instagram.limit')
-        ]);
+                'access_token' => $this->getConfigValue('instagram.accessToken'),
+                'count' => $this->getConfigValue('instagram.limit')
+            ]);
 
         $json = file_get_contents($url);
 
@@ -184,5 +202,16 @@ class SocialFeeder
         }
 
         return $data;
+    }
+
+    /**
+     * Gets a config value from the array (with dotted notation)
+     *
+     * @param $field
+     * @return mixed
+     */
+    private function getConfigValue($field)
+    {
+        return array_get($this->config, $field);
     }
 }
