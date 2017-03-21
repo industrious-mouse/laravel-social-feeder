@@ -2,10 +2,10 @@
 
 return [
     'twitter' => [
-        'consumerKey' => '',
-        'consumerSecret' => '',
-        'accessToken' => '',
-        'accessTokenSecret' => '',
+        'consumerKey' => env('SOCIAL_TWITTER_CONSUMER_KEY'),
+        'consumerSecret' => env('SOCIAL_TWITTER_CONSUMER_SECRET'),
+        'accessToken' => env('SOCIAL_TWITTER_ACCESS_TOKEN'),
+        'accessTokenSecret' => env('SOCIAL_TWITTER_ACCESS_TOKEN_SECRET'),
 
         'limit' => 10,
         'exclude_replies' => true,
@@ -13,13 +13,13 @@ return [
     ],
 
     'facebook' => [
-        'accessToken' => '',
-        'pageName' => '',
+        'accessToken' => env('SOCIAL_FACEBOOK_ACCESS_TOKEN'),
+        'pageName' => env('SOCIAL_FACEBOOK_PAGE_NAME'),
         'limit' => 10,
     ],
 
     'instagram' => [
-        'accessToken' => '',
+        'accessToken' => env('SOCIAL_INSTAGRAM_ACCESS_TOKEN'),
         'limit' => 10,
     ],
 ];
