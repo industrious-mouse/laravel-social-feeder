@@ -42,6 +42,6 @@ class SocialPost extends \Eloquent
      */
     public function getDates()
     {
-        return array('published_at', 'created_at', 'updated_at');
+        return ['published_at', 'created_at', 'updated_at'];
     }
 }
