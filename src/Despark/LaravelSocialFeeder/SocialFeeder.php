@@ -82,7 +82,7 @@ class SocialFeeder
             $newPostData = [
                 'type' => 'twitter',
                 'social_id' => $tweet->id_str,
-                'url' => 'https://twitter.com/'.$params['screen_name'].'/status/'.$tweet->id_str,
+                'url' => 'https://twitter.com/statuses/' . $tweet->id_str,
                 'text' => $tweet->text,
                 'show_on_page' => 1,
                 'image_url' => isset($tweet->entities->media) && is_array($tweet->entities->media) ? $tweet->entities->media[0]->media_url : null,
