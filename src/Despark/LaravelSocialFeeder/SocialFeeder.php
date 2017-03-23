@@ -175,7 +175,7 @@ class SocialFeeder
             return [];
         }
 
-        $lastInstagramPost = \SocialPost::type('instagram')->latest('published_at')->get()->first();
+        $lastInstagramPost = SocialPost::type('instagram')->latest('published_at')->get()->first();
 
         $lastInstagramPostTimestamp = $lastInstagramPost
             ? strtotime($lastInstagramPost->published_at)
