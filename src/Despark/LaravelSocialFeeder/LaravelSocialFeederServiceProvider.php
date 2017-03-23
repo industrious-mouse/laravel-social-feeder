@@ -49,6 +49,6 @@ class LaravelSocialFeederServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return array();
+        return [];
     }
 }

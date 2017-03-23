@@ -39,12 +39,12 @@ class SocialFeeder
 
         $url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
 
-        $params = array(
+        $params = [
             'screen_name'       => $this->getConfigValue('twitter.screen_name'),
             'count'             => $this->getConfigValue('twitter.limit'),
             'exclude_replies'   => $this->getConfigValue('twitter.exclude_replies'),
             'include_rts'       => $this->getConfigValue('twitter.include_rts')
-        );
+        ];
 
         $lastTwitterPost = SocialPost::type('twitter')
             ->latest('published_at')
@@ -128,11 +128,11 @@ class SocialFeeder
         $ch = curl_init($url);
 
         // Configuring curl options
-        $options = array(
+        $options = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_HTTPHEADER => array('Content-type: application/json')
-        );
+            CURLOPT_HTTPHEADER => ['Content-type: application/json']
+        ];
 
         // Setting curl options
         curl_setopt_array($ch, $options);
