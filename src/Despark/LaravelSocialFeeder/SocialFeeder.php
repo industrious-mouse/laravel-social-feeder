@@ -1,5 +1,6 @@
 <?php namespace Despark\LaravelSocialFeeder;
 
+use Despark\SocialPost;
 use TwitterAPIExchange;
 
 /**
@@ -45,7 +46,7 @@ class SocialFeeder
             'include_rts'       => $this->getConfigValue('twitter.include_rts')
         );
 
-        $lastTwitterPost = \SocialPost::type('twitter')
+        $lastTwitterPost = SocialPost::type('twitter')
             ->latest('published_at')
             ->limit('1')
             ->get()
