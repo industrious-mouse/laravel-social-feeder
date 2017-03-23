@@ -4,7 +4,7 @@
  * Class SocialPost
  * @package Despark
  */
-class SocialPost extends Eloquent
+class SocialPost extends \Eloquent
 {
     /**
      * @var string
