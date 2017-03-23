@@ -84,6 +84,7 @@ class SocialFeeder
                 'url' => 'https://twitter.com/'.$params['screen_name'].'/status/'.$tweet->id_str,
                 'text' => $tweet->text,
                 'show_on_page' => 1,
+                'image_url' => isset($tweet->entities->media) && is_array($tweet->entities->media) ? $tweet->entities->media[0]->media_url : null,
                 'author_name' => $tweet->user->name,
                 'author_image_url' => $tweet->user->profile_image_url,
                 'published_at' => date('Y-m-d H:i:s', strtotime($tweet->created_at)),
