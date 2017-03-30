@@ -7,6 +7,7 @@ return [
         'accessToken' => env('SOCIAL_TWITTER_ACCESS_TOKEN'),
         'accessTokenSecret' => env('SOCIAL_TWITTER_ACCESS_TOKEN_SECRET'),
 
+        'screen_name' => '',
         'limit' => 10,
         'exclude_replies' => true,
         'include_rts' => true,

@@ -74,24 +74,24 @@ class SocialFeeder
 
         $data = [];
 
-        foreach (json_decode($tweets) as $tweet) {
-            if (! is_object($tweet)) {
+        foreach (json_decode($tweets) as $item) {
+            if (! is_object($item)) {
                 continue;
             }
 
-            $newPostData = [
+            $post = [
                 'type' => 'twitter',
-                'social_id' => $tweet->id_str,
-                'url' => 'https://twitter.com/statuses/' . $tweet->id_str,
-                'text' => $tweet->text,
+                'social_id' => $item->id_str,
+                'url' => 'https://twitter.com/' . $params['screen_name'] . '/status/' . $item->id_str,
+                'text' => $item->text,
                 'show_on_page' => 1,
-                'image_url' => isset($tweet->entities->media) && is_array($tweet->entities->media) ? $tweet->entities->media[0]->media_url : null,
-                'author_name' => $tweet->user->name,
-                'author_image_url' => $tweet->user->profile_image_url,
-                'published_at' => date('Y-m-d H:i:s', strtotime($tweet->created_at)),
+                'image_url' => isset($item->entities->media) && is_array($item->entities->media) ? $item->entities->media[0]->media_url : null,
+                'author_name' => $item->user->name,
+                'author_image_url' => $item->user->profile_image_url,
+                'published_at' => date('Y-m-d H:i:s', strtotime($item->created_at)),
             ];
 
-            array_push($data, $newPostData);
+            array_push($data, $post);
         }
 
         return $data;
@@ -140,24 +140,23 @@ class SocialFeeder
         // Getting results
         $results = curl_exec($ch); // Getting jSON result string
         $results = json_decode($results);
-        $results = $results->data;
         $data = [];
 
-        foreach ($results as $post) {
-            $message = $post->message ?? null;
-            $imageUrl = $post->full_picture ?? null;
+        foreach ($results->data as $item) {
+            $message = $item->message ?? null;
+            $imageUrl = $item->full_picture ?? null;
 
-            $newPostData = [
+            $post = [
                 'type' => 'facebook',
-                'social_id' => $post->id,
-                'url' => $post->permalink_url,
+                'social_id' => $item->id,
+                'url' => $item->permalink_url,
                 'text' => $message,
                 'image_url' => $imageUrl,
                 'show_on_page' => 1,
-                'published_at' => date('Y-m-d H:i:s', strtotime($post->created_time)),
+                'published_at' => date('Y-m-d H:i:s', strtotime($item->created_time)),
             ];
 
-            array_push($data, $newPostData);
+            array_push($data, $post);
         }
 
         return $data;
@@ -190,29 +189,30 @@ class SocialFeeder
         $json = file_get_contents($url);
 
         $obj = json_decode($json);
-        $postsData = $obj->data;
 
         $data = [];
 
-        foreach ($postsData as $post) {
-            if (!is_null($post->caption)) {
-                if ($post->caption->created_time <= $lastInstagramPostTimestamp) {
+        foreach ($obj->data as $item) {
+
+            if (!is_null($item->caption)) {
+
+                if ($item->caption->created_time <= $lastInstagramPostTimestamp) {
                     continue;
                 }
 
-                $newPostData = [
+                $post = [
                     'type' => 'instagram',
-                    'social_id' => $post->id,
-                    'url' => $post->link,
-                    'text' => $post->caption->text,
-                    'image_url' => $post->images->standard_resolution->url,
+                    'social_id' => $item->id,
+                    'url' => $item->link,
+                    'text' => $item->caption->text,
+                    'image_url' => $item->images->standard_resolution->url,
                     'show_on_page' => 1,
-                    'author_name' => $post->user->username,
-                    'author_image_url' => $post->user->profile_picture,
-                    'published_at' => date('Y-m-d H:i:s', $post->caption->created_time),
+                    'author_name' => $item->user->username,
+                    'author_image_url' => $item->user->profile_picture,
+                    'published_at' => date('Y-m-d H:i:s', $item->caption->created_time),
                 ];
 
-                array_push($data, $newPostData);
+                array_push($data, $post);
             }
         }
 
