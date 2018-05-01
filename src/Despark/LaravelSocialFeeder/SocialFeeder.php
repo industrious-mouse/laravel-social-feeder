@@ -196,10 +196,6 @@ class SocialFeeder
 
             if (!is_null($item->caption)) {
 
-                if ($item->caption->created_time <= $lastInstagramPostTimestamp) {
-                    continue;
-                }
-
                 $post = [
                     'type' => 'instagram',
                     'social_id' => $item->id,
